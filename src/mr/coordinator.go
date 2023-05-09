@@ -230,7 +230,7 @@ func (c *Coordinator) ServerTimeOut(l net.Listener) {
 		select {
 		case <-time.After(15 * time.Second):
 			log.Println("server timeout!")
-			//go c.StartServer(l)
+			go c.StartServer(l)
 			if retryTimeout++; retryTimeout >= MaxServerTimeout {
 				log.Println("server retry failed!!!")
 				return
