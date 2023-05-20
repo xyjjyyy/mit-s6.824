@@ -3,6 +3,17 @@
   <component name="LeetcodeEditor">
     <option name="projectConfig">
       <map>
+        <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1016]子串能表示从 1 到 N 数字的二进制串.go">
+          <value>
+            <LeetcodeEditor>
+              <option name="contentPath" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/doc/content/[1016]子串能表示从 1 到 N 数字的二进制串.md" />
+              <option name="frontendQuestionId" value="leetcode.cn1016" />
+              <option name="host" value="leetcode.cn" />
+              <option name="path" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1016]子串能表示从 1 到 N 数字的二进制串.go" />
+              <option name="titleSlug" value="binary-string-with-substrings-representing-1-to-n" />
+            </LeetcodeEditor>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[103]二叉树的锯齿形层序遍历.go">
           <value>
             <LeetcodeEditor>
@@ -25,6 +36,50 @@
             </LeetcodeEditor>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[105]从前序与中序遍历序列构造二叉树.go">
+          <value>
+            <LeetcodeEditor>
+              <option name="contentPath" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/doc/content/[105]从前序与中序遍历序列构造二叉树.md" />
+              <option name="frontendQuestionId" value="leetcode.cn105" />
+              <option name="host" value="leetcode.cn" />
+              <option name="path" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[105]从前序与中序遍历序列构造二叉树.go" />
+              <option name="titleSlug" value="construct-binary-tree-from-preorder-and-inorder-traversal" />
+            </LeetcodeEditor>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1072]按列翻转得到最大值等行数.go">
+          <value>
+            <LeetcodeEditor>
+              <option name="contentPath" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/doc/content/[1072]按列翻转得到最大值等行数.md" />
+              <option name="frontendQuestionId" value="leetcode.cn1072" />
+              <option name="host" value="leetcode.cn" />
+              <option name="path" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1072]按列翻转得到最大值等行数.go" />
+              <option name="titleSlug" value="flip-columns-for-maximum-number-of-equal-rows" />
+            </LeetcodeEditor>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1330]翻转子数组得到最大的数组值.go">
+          <value>
+            <LeetcodeEditor>
+              <option name="contentPath" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/doc/content/[1330]翻转子数组得到最大的数组值.md" />
+              <option name="frontendQuestionId" value="leetcode.cn1330" />
+              <option name="host" value="leetcode.cn" />
+              <option name="path" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1330]翻转子数组得到最大的数组值.go" />
+              <option name="titleSlug" value="reverse-subarray-to-maximize-array-value" />
+            </LeetcodeEditor>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1335]工作计划的最低难度.go">
+          <value>
+            <LeetcodeEditor>
+              <option name="contentPath" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/doc/content/[1335]工作计划的最低难度.md" />
+              <option name="frontendQuestionId" value="leetcode.cn1335" />
+              <option name="host" value="leetcode.cn" />
+              <option name="path" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[1335]工作计划的最低难度.go" />
+              <option name="titleSlug" value="minimum-difficulty-of-a-job-schedule" />
+            </LeetcodeEditor>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[2423]删除字符使频率相同.go">
           <value>
             <LeetcodeEditor>
@@ -33,6 +88,17 @@
               <option name="host" value="leetcode.cn" />
               <option name="path" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[2423]删除字符使频率相同.go" />
               <option name="titleSlug" value="remove-letter-to-equalize-frequency" />
+            </LeetcodeEditor>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[654]最大二叉树.go">
+          <value>
+            <LeetcodeEditor>
+              <option name="contentPath" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/doc/content/[654]最大二叉树.md" />
+              <option name="frontendQuestionId" value="leetcode.cn654" />
+              <option name="host" value="leetcode.cn" />
+              <option name="path" value="$PROJECT_DIR$/../leetcode/leetcode/editor/cn/[654]最大二叉树.go" />
+              <option name="titleSlug" value="maximum-binary-tree" />
             </LeetcodeEditor>
           </value>
         </entry>

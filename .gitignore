@@ -4,4 +4,5 @@ api.key
 *-handin.tar.gz
 mr-tmp/
 .idea/*
-example*
+*.txt
+*.log
