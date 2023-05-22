@@ -1437,10 +1437,12 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 		}
 
 		if disconnect {
+			log.Println(victim, " disconnect")
 			cfg.disconnect(victim)
 			cfg.one(rand.Int(), servers-1, true)
 		}
 		if crash {
+			log.Println(victim, " shutdown")
 			cfg.crash1(victim)
 			cfg.one(rand.Int(), servers-1, true)
 		}
@@ -1467,12 +1469,14 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 		if disconnect {
 			// reconnect a follower, who maybe behind and
 			// needs to rceive a snapshot to catch up.
+			log.Println(victim, " connect")
 			cfg.connect(victim)
 			cfg.one(rand.Int(), servers, true)
 			leader1 = cfg.checkOneLeader()
 		}
 		if crash {
 			cfg.start1(victim, cfg.applierSnap)
+			log.Println(victim, " start")
 			cfg.connect(victim)
 			cfg.one(rand.Int(), servers, true)
 			leader1 = cfg.checkOneLeader()
@@ -1482,23 +1486,83 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 }
 
 func TestSnapshotBasic2D(t *testing.T) {
+	file, err := os.OpenFile("example2D-1.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
+	log.SetPrefix("[Raft] ")
+	log.SetFlags(log.LstdFlags)
+
 	snapcommon(t, "Test (2D): snapshots basic", false, true, false)
 }
 
 func TestSnapshotInstall2D(t *testing.T) {
+	file, err := os.OpenFile("example2D-2.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
+	log.SetPrefix("[Raft] ")
+	log.SetFlags(log.LstdFlags)
+
 	snapcommon(t, "Test (2D): install snapshots (disconnect)", true, true, false)
 }
 
 func TestSnapshotInstallUnreliable2D(t *testing.T) {
+	file, err := os.OpenFile("example2D-3.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
+	log.SetPrefix("[Raft] ")
+	log.SetFlags(log.LstdFlags)
+
 	snapcommon(t, "Test (2D): install snapshots (disconnect+unreliable)",
 		true, false, false)
 }
 
 func TestSnapshotInstallCrash2D(t *testing.T) {
+	file, err := os.OpenFile("example2D-4.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
+	log.SetPrefix("[Raft] ")
+	log.SetFlags(log.LstdFlags)
+
 	snapcommon(t, "Test (2D): install snapshots (crash)", false, true, true)
 }
 
 func TestSnapshotInstallUnCrash2D(t *testing.T) {
+	file, err := os.OpenFile("example2D-5.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
+	log.SetPrefix("[Raft] ")
+	log.SetFlags(log.LstdFlags)
+
 	snapcommon(t, "Test (2D): install snapshots (unreliable+crash)", false, false, true)
 }
 
@@ -1506,6 +1570,18 @@ func TestSnapshotInstallUnCrash2D(t *testing.T) {
 // restart using snapshot along with the
 // tail of the log?
 func TestSnapshotAllCrash2D(t *testing.T) {
+	file, err := os.OpenFile("example2D-6.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
+	log.SetPrefix("[Raft] ")
+	log.SetFlags(log.LstdFlags)
+
 	servers := 3
 	iters := 5
 	cfg := make_config(t, servers, false, true)
@@ -1546,6 +1622,18 @@ func TestSnapshotAllCrash2D(t *testing.T) {
 // do servers correctly initialize their in-memory copy of the snapshot, making
 // sure that future writes to persistent state don't lose state?
 func TestSnapshotInit2D(t *testing.T) {
+	file, err := os.OpenFile("example2D-7.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
+	log.SetPrefix("[Raft] ")
+	log.SetFlags(log.LstdFlags)
+
 	servers := 3
 	cfg := make_config(t, servers, false, true)
 	defer cfg.cleanup()
