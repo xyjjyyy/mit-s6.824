@@ -18,3 +18,6 @@
 ### 坑
 
 `lab2` 即便2B通过了测试点，2C也会教你做人，即便2C通过了测试点，2D也会教你做人，都是自己埋下的坑，所以debug实在出不来的时候，不妨考虑重构代码，尤其注意日志的快速恢复部分XTerm,XIndex，XLen如何设置
+
+
+`raft` 官方交互图：https://pdos.csail.mit.edu/6.824/notes/raft_diagram.pdf
