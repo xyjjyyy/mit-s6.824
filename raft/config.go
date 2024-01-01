@@ -610,6 +610,9 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 // print the Test message.
 // e.g. cfg.begin("Test (2B): RPC counts aren't too high")
 func (cfg *config) begin(description string) {
+	cfg.mu.Lock()
+	defer cfg.mu.Unlock()
+
 	fmt.Printf("%s ...\n", description)
 	cfg.t0 = time.Now()
 	cfg.rpcs0 = cfg.rpcTotal()

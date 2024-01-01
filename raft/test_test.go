@@ -20,7 +20,6 @@ import (
 	"time"
 )
 
-
 // The tester generously allows solutions to complete elections in one second
 // (much more than the paper's range of timeouts).
 const RaftElectionTimeout = 1000 * time.Millisecond
@@ -66,7 +65,7 @@ func TestReElection2A(t *testing.T) {
 	leader1 := cfg.checkOneLeader()
 
 	// if the leader disconnects, a new one should be elected.
-	log.Printf("TestReElection2A: %d disconnect!\n", leader1)
+	logger.Info("TestReElection2A: leader disconnect!", slog.Int("leader", leader1))
 	cfg.disconnect(leader1)
 	cfg.checkOneLeader()
 
@@ -82,7 +81,7 @@ func TestReElection2A(t *testing.T) {
 	cfg.disconnect(leader2)
 	logger.Info("TestReElection2A: disconnect", slog.Int("leader", leader2))
 	leader3 := (leader2 + 1) % servers
-	cfg.disconnect((leader2 + 1) % servers)
+	cfg.disconnect(leader3)
 	logger.Info("TestReElection2A: disconnect", slog.Int("leader", leader3))
 	time.Sleep(2 * RaftElectionTimeout)
 
@@ -91,7 +90,7 @@ func TestReElection2A(t *testing.T) {
 	cfg.checkNoLeader()
 
 	// if a quorum arises, it should elect a leader.
-	cfg.connect((leader2 + 1) % servers)
+	cfg.connect(leader3)
 	logger.Info("TestReElection2A: reconnect", slog.Int("leader", leader3))
 	cfg.checkOneLeader()
 
@@ -110,8 +109,6 @@ func TestManyElections2A(t *testing.T) {
 	cfg.begin("Test (2A): multiple elections")
 
 	cfg.checkOneLeader()
-
-	slog.Info("check chenggong!!")
 
 	iters := 10
 	for ii := 1; ii < iters; ii++ {

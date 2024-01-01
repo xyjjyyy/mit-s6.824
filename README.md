@@ -21,3 +21,7 @@
 
 
 `raft` 官方交互图：https://pdos.csail.mit.edu/6.824/notes/raft_diagram.pdf
+
+
+### 重构代码，优化各种逻辑
+- [X] 2A 完成

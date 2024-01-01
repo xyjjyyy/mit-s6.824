@@ -6,3 +6,4 @@ mr-tmp/
 .idea/*
 *.txt
 *.log
+task.json
