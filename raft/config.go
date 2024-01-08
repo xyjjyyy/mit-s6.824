@@ -14,6 +14,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"log/slog"
 	"math/big"
 	"math/rand"
 	"runtime"
@@ -357,7 +358,7 @@ func (cfg *config) cleanup() {
 
 // attach server i to the net.
 func (cfg *config) connect(i int) {
-	// fmt.Printf("connect(%d)\n", i)
+	slog.Info("node connect", slog.Int("node", i))
 
 	cfg.connected[i] = true
 
@@ -380,7 +381,7 @@ func (cfg *config) connect(i int) {
 
 // detach server i from the net.
 func (cfg *config) disconnect(i int) {
-	// fmt.Printf("disconnect(%d)\n", i)
+	slog.Warn("node disconnect", slog.Int("node", i))
 
 	cfg.connected[i] = false
 

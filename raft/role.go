@@ -32,18 +32,22 @@ func (rf *Raft) toCandidateState() {
 func (rf *Raft) toLeaderState() {
 	rf.role = Leader
 	lastLog := rf.getLastLog()
-	noLogEntry := &Entry{
-		Term:    rf.currentTerm,
-		Index:   lastLog.Index + 1,
-		Command: nil,
-	}
+	index := lastLog.Index + 1
 
-	// 成为leader后，追加一条noLogEntry，用于提交之前的日志
-	rf.logs = append(rf.logs, noLogEntry)
+	if rf.noopflag {
+		noLogEntry := &Entry{
+			Term:    rf.currentTerm,
+			Index:   index,
+			Command: nil,
+		}
+
+		// 成为leader后，追加一条noLogEntry，用于提交之前的日志
+		rf.logs = append(rf.logs, noLogEntry)
+	}
 
 	// 更新nextIndex
 	for i := 0; i < len(rf.peers); i++ {
-		rf.nextIndex[i] = lastLog.Index + 1
+		rf.nextIndex[i] = index
 	}
 	// 时间立刻到期
 	rf.heartBeatTimer.Reset(0)

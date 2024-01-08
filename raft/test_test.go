@@ -65,7 +65,7 @@ func TestReElection2A(t *testing.T) {
 	leader1 := cfg.checkOneLeader()
 
 	// if the leader disconnects, a new one should be elected.
-	logger.Info("TestReElection2A: leader disconnect!", slog.Int("leader", leader1))
+	slog.Info("TestReElection2A: leader disconnect!", slog.Int("leader", leader1))
 	cfg.disconnect(leader1)
 	cfg.checkOneLeader()
 
@@ -73,16 +73,16 @@ func TestReElection2A(t *testing.T) {
 	// disturb the new leader. and the old leader
 	// should switch to follower.
 	cfg.connect(leader1)
-	logger.Info("TestReElection2A: reconnect", slog.Int("leader", leader1))
+	slog.Info("TestReElection2A: reconnect", slog.Int("leader", leader1))
 	leader2 := cfg.checkOneLeader()
 
 	// if there's no quorum, no new leader should
 	// be elected.
 	cfg.disconnect(leader2)
-	logger.Info("TestReElection2A: disconnect", slog.Int("leader", leader2))
+	slog.Info("TestReElection2A: disconnect", slog.Int("leader", leader2))
 	leader3 := (leader2 + 1) % servers
 	cfg.disconnect(leader3)
-	logger.Info("TestReElection2A: disconnect", slog.Int("leader", leader3))
+	slog.Info("TestReElection2A: disconnect", slog.Int("leader", leader3))
 	time.Sleep(2 * RaftElectionTimeout)
 
 	// check that the one connected server
@@ -91,12 +91,12 @@ func TestReElection2A(t *testing.T) {
 
 	// if a quorum arises, it should elect a leader.
 	cfg.connect(leader3)
-	logger.Info("TestReElection2A: reconnect", slog.Int("leader", leader3))
+	slog.Info("TestReElection2A: reconnect", slog.Int("leader", leader3))
 	cfg.checkOneLeader()
 
 	// re-join of last node shouldn't prevent leader from existing.
 	cfg.connect(leader2)
-	logger.Info("TestReElection2A: reconnect", slog.Int("leader", leader2))
+	slog.Info("TestReElection2A: reconnect", slog.Int("leader", leader2))
 	cfg.checkOneLeader()
 	cfg.end()
 }
@@ -135,18 +135,6 @@ func TestManyElections2A(t *testing.T) {
 }
 
 func TestBasicAgree2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-1.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -172,18 +160,6 @@ func TestBasicAgree2B(t *testing.T) {
 // check, based on counting bytes of RPCs, that
 // each command is sent to each peer just once.
 func TestRPCBytes2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-2.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -216,18 +192,6 @@ func TestRPCBytes2B(t *testing.T) {
 
 // test just failure of followers.
 func TestFollowerFailure2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-3.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -273,18 +237,6 @@ func TestFollowerFailure2B(t *testing.T) {
 
 // test just failure of leaders.
 func TestLeaderFailure2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-4.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -330,18 +282,6 @@ func TestLeaderFailure2B(t *testing.T) {
 // test that a follower participates after
 // disconnect and re-connect.
 func TestFailAgree2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-5.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -352,48 +292,32 @@ func TestFailAgree2B(t *testing.T) {
 
 	// disconnect one follower from the network.
 	leader := cfg.checkOneLeader()
-	log.Printf("[%d] disconnect\n", (leader+1)%servers)
+	slog.Info("node disconnect", slog.Int("node", (leader+1)%servers))
 	cfg.disconnect((leader + 1) % servers)
 
 	// the leader and remaining follower should be
 	// able to agree despite the disconnected follower.
 	cfg.one(102, servers-1, false)
 	cfg.one(103, servers-1, false)
-	log.Println("RaftElectionTimeout start1")
 	time.Sleep(RaftElectionTimeout)
-	log.Println("RaftElectionTimeout end1")
 	cfg.one(104, servers-1, false)
 	cfg.one(105, servers-1, false)
 
 	// re-connect
-	log.Printf("[%d] connect\n", (leader+1)%servers)
+	slog.Info("node connect", slog.Int("node", (leader+1)%servers))
 	cfg.connect((leader + 1) % servers)
 
 	// the full set of servers should preserve
 	// previous agreements, and be able to agree
 	// on new commands.
 	cfg.one(106, servers, true)
-	log.Println("RaftElectionTimeout start2")
 	time.Sleep(RaftElectionTimeout)
-	log.Println("RaftElectionTimeout end2")
 	cfg.one(107, servers, true)
 
 	cfg.end()
 }
 
 func TestFailNoAgree2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-6.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 5
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -412,6 +336,7 @@ func TestFailNoAgree2B(t *testing.T) {
 	if ok != true {
 		t.Fatalf("leader rejected Start()")
 	}
+	t.Log(index)
 	if index != 2 {
 		t.Fatalf("expected index 2, got %v", index)
 	}
@@ -446,18 +371,6 @@ func TestFailNoAgree2B(t *testing.T) {
 }
 
 func TestConcurrentStarts2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-7.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -559,18 +472,6 @@ loop:
 }
 
 func TestRejoin2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-8.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -581,7 +482,6 @@ func TestRejoin2B(t *testing.T) {
 
 	// leader network failure
 	leader1 := cfg.checkOneLeader()
-	log.Printf("Test: %d disconnect\n", leader1)
 	cfg.disconnect(leader1)
 
 	// make old leader try to agree on some entries
@@ -594,44 +494,17 @@ func TestRejoin2B(t *testing.T) {
 
 	// new leader network failure
 	leader2 := cfg.checkOneLeader()
-	log.Printf("Test: %d disconnect\n", leader2)
 	cfg.disconnect(leader2)
 
 	// old leader connected again
-	log.Printf("Test: %d reconnect\n", leader1)
 	cfg.connect(leader1)
 
 	cfg.one(104, 2, true)
 
 	// all together now
-	log.Printf("Test: %d reconnect\n", leader2)
 	cfg.connect(leader2)
 
 	cfg.one(105, servers, true)
-
-	cfg.end()
-}
-
-func TestRAFT(t *testing.T) {
-	file, err := os.OpenFile("example2B-9.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
-	servers := 5
-	cfg := make_config(t, servers, false, false)
-	defer cfg.cleanup()
-
-	cfg.begin("Test (2B): leader backs up quickly over incorrect follower logs")
-
-	cfg.one(100, servers, true)
 
 	cfg.end()
 }
