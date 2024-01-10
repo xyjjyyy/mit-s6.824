@@ -1,6 +1,9 @@
 package raft
 
-import "log/slog"
+import (
+	"log/slog"
+	"sync/atomic"
+)
 
 func (rf *Raft) startElection() {
 	rf.mu.Lock()
@@ -15,19 +18,22 @@ func (rf *Raft) startElection() {
 	slog.Info("start election",
 		slog.Int("node", rf.me),
 		slog.Int("term", rf.currentTerm))
+
+	rf.persist(nil)
 	rf.mu.Unlock()
 
+	single := make(chan struct{})
+	var count int32 = 1
 	for i := 0; i < len(rf.peers); i++ {
 		if i == rf.me {
 			continue
 		}
 
-		single := make(chan struct{})
-		go rf.handleSendVote(i, voteArgs, single)
+		go rf.handleSendVote(i, voteArgs, single, &count)
 	}
 }
 
-func (rf *Raft) handleSendVote(server int, args RequestVoteArgs, single chan struct{}) {
+func (rf *Raft) handleSendVote(server int, args RequestVoteArgs, single chan struct{}, count *int32) {
 	voteReply := RequestVoteReply{}
 	ok := rf.sendRequestVote(server, &args, &voteReply)
 
@@ -52,7 +58,7 @@ func (rf *Raft) handleSendVote(server int, args RequestVoteArgs, single chan str
 	if !voteReply.VoteGranted {
 		// term已经不是最新的，更新自己的身份
 		if voteReply.Term >= rf.currentTerm {
-			rf.toFollwerState(voteReply.Term, -1)
+			rf.toFollwerState(WithTerm(voteReply.Term), WithVotedFor(-1))
 			slog.Info("handleVote: find a newer node",
 				slog.Int("leader", rf.me),
 				slog.Int("peer", server),
@@ -78,9 +84,10 @@ func (rf *Raft) handleSendVote(server int, args RequestVoteArgs, single chan str
 	case <-single:
 
 	default:
-		rf.votes++
+		atomic.AddInt32(count, 1)
+		// slog.Info("count ", slog.Int("count", int(*count)))
 		// 超过半数通票，成为leader
-		if rf.votes > len(rf.peers)/2 {
+		if int(*count) > len(rf.peers)/2 {
 			slog.Info("become leader", slog.Int("node", rf.me))
 			rf.toLeaderState()
 			close(single) // 关闭信号
@@ -91,7 +98,10 @@ func (rf *Raft) handleSendVote(server int, args RequestVoteArgs, single chan str
 // RequestVote example RequestVote RPC handler.
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	rf.mu.Lock()
-	defer rf.mu.Unlock()
+	defer func() {
+		rf.persist(nil)
+		rf.mu.Unlock()
+	}()
 
 	reply.Term = rf.currentTerm
 	reply.VoteGranted = false
@@ -106,8 +116,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		}
 	}
 
-	rf.currentTerm = args.Term
-	rf.role = Follower
+	rf.toFollwerState(WithTerm(args.Term))
 
 	lastLog := rf.getLastLog()
 	lastLogIndex := lastLog.Index
@@ -116,7 +125,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		(args.LastLogIndex >= lastLogIndex && args.LastLogTerm == lastLogTerm) {
 		reply.Term = args.Term
 		reply.VoteGranted = true
-		rf.toFollwerState(args.Term, args.CandidateId)
+		rf.toFollwerState(WithVotedFor(args.CandidateId))
 	}
 
 	rf.persist(nil)

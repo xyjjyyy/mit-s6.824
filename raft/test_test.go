@@ -10,10 +10,8 @@ package raft
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
 	"math/rand"
-	"os"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -510,18 +508,6 @@ func TestRejoin2B(t *testing.T) {
 }
 
 func TestBackup2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-9.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 5
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -587,28 +573,13 @@ func TestBackup2B(t *testing.T) {
 	// now everyone
 	for i := 0; i < servers; i++ {
 		cfg.connect(i)
-		log.Printf("%d connect\n", i)
 	}
 
-	log.Println("Last one!")
 	cfg.one(rand.Int(), servers, true)
-	log.Println("Last one end!")
 	cfg.end()
 }
 
 func TestCount2B(t *testing.T) {
-	file, err := os.OpenFile("example2B-10.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -622,7 +593,7 @@ func TestCount2B(t *testing.T) {
 		return
 	}
 
-	leader := cfg.checkOneLeader()
+	cfg.checkOneLeader()
 
 	total1 := rpcs()
 
@@ -639,7 +610,7 @@ loop:
 			time.Sleep(3 * time.Second)
 		}
 
-		leader = cfg.checkOneLeader()
+		leader := cfg.checkOneLeader()
 		total1 = rpcs()
 
 		iters := 10
@@ -719,18 +690,6 @@ loop:
 }
 
 func TestPersist12C(t *testing.T) {
-	file, err := os.OpenFile("example2C-1.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -777,18 +736,6 @@ func TestPersist12C(t *testing.T) {
 }
 
 func TestPersist22C(t *testing.T) {
-	file, err := os.OpenFile("example2C-2.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 5
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -835,18 +782,6 @@ func TestPersist22C(t *testing.T) {
 }
 
 func TestPersist32C(t *testing.T) {
-	file, err := os.OpenFile("example2C-3.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -885,17 +820,6 @@ func TestPersist32C(t *testing.T) {
 // The leader in a new term may try to finish replicating log entries that
 // haven't been committed yet.
 func TestFigure82C(t *testing.T) {
-	file, err := os.OpenFile("example2C-4.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 5
 	cfg := make_config(t, servers, false, false)
 	defer cfg.cleanup()
@@ -925,17 +849,14 @@ func TestFigure82C(t *testing.T) {
 		}
 
 		if leader != -1 {
-			log.Printf("%d shutdown!\n", leader)
 			cfg.crash1(leader)
 			nup -= 1
 		}
 
 		if nup < 3 {
-			log.Println("TEST:less than half the number of services！")
 			s := rand.Int() % servers
 			if cfg.rafts[s] == nil {
 				cfg.start1(s, cfg.applier)
-				log.Printf("%d reconnect\n", s)
 				cfg.connect(s)
 				nup += 1
 			}
@@ -949,25 +870,12 @@ func TestFigure82C(t *testing.T) {
 		}
 	}
 
-	log.Println("last one...")
 	cfg.one(rand.Int(), servers, true)
 
 	cfg.end()
 }
 
 func TestUnreliableAgree2C(t *testing.T) {
-	file, err := os.OpenFile("example2C-5.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 5
 	cfg := make_config(t, servers, true, false)
 	defer cfg.cleanup()
@@ -997,18 +905,6 @@ func TestUnreliableAgree2C(t *testing.T) {
 }
 
 func TestFigure8Unreliable2C(t *testing.T) {
-	file, err := os.OpenFile("example2C-6.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 5
 	cfg := make_config(t, servers, true, false)
 	defer cfg.cleanup()
@@ -1039,7 +935,6 @@ func TestFigure8Unreliable2C(t *testing.T) {
 		}
 
 		if leader != -1 && (rand.Int()%1000) < int(RaftElectionTimeout/time.Millisecond)/2 {
-			log.Printf("leader[%d] disconnect\n", leader)
 			cfg.disconnect(leader)
 			nup -= 1
 		}
@@ -1047,17 +942,14 @@ func TestFigure8Unreliable2C(t *testing.T) {
 		if nup < 3 {
 			s := rand.Int() % servers
 			if cfg.connected[s] == false {
-				log.Printf("%d connect\n", s)
 				cfg.connect(s)
 				nup += 1
 			}
 		}
 	}
 
-	log.Printf("ENd...")
 	for i := 0; i < servers; i++ {
 		if cfg.connected[i] == false {
-			log.Printf("%d connect\n", i)
 			cfg.connect(i)
 		}
 	}
@@ -1068,7 +960,6 @@ func TestFigure8Unreliable2C(t *testing.T) {
 }
 
 func internalChurn(t *testing.T, unreliable bool) {
-
 	servers := 5
 	cfg := make_config(t, servers, unreliable, false)
 	defer cfg.cleanup()
@@ -1192,8 +1083,8 @@ func internalChurn(t *testing.T, unreliable bool) {
 		v := cfg.wait(index, servers, -1)
 		if vi, ok := v.(int); ok {
 			really = append(really, vi)
-		} else {
-			t.Fatalf("not an int")
+		} else if v != nil {
+			t.Fatalf("value %v is not an int or nil", v)
 		}
 	}
 
@@ -1213,34 +1104,10 @@ func internalChurn(t *testing.T, unreliable bool) {
 }
 
 func TestReliableChurn2C(t *testing.T) {
-	file, err := os.OpenFile("example2C-7.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	internalChurn(t, false)
 }
 
 func TestUnreliableChurn2C(t *testing.T) {
-	file, err := os.OpenFile("example2C-8.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	internalChurn(t, true)
 }
 
@@ -1266,12 +1133,10 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 		}
 
 		if disconnect {
-			log.Println(victim, " disconnect")
 			cfg.disconnect(victim)
 			cfg.one(rand.Int(), servers-1, true)
 		}
 		if crash {
-			log.Println(victim, " shutdown")
 			cfg.crash1(victim)
 			cfg.one(rand.Int(), servers-1, true)
 		}
@@ -1298,14 +1163,12 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 		if disconnect {
 			// reconnect a follower, who maybe behind and
 			// needs to rceive a snapshot to catch up.
-			log.Println(victim, " connect")
 			cfg.connect(victim)
 			cfg.one(rand.Int(), servers, true)
 			leader1 = cfg.checkOneLeader()
 		}
 		if crash {
 			cfg.start1(victim, cfg.applierSnap)
-			log.Println(victim, " start")
 			cfg.connect(victim)
 			cfg.one(rand.Int(), servers, true)
 			leader1 = cfg.checkOneLeader()
@@ -1315,83 +1178,23 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 }
 
 func TestSnapshotBasic2D(t *testing.T) {
-	file, err := os.OpenFile("example2D-1.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	snapcommon(t, "Test (2D): snapshots basic", false, true, false)
 }
 
 func TestSnapshotInstall2D(t *testing.T) {
-	file, err := os.OpenFile("example2D-2.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	snapcommon(t, "Test (2D): install snapshots (disconnect)", true, true, false)
 }
 
 func TestSnapshotInstallUnreliable2D(t *testing.T) {
-	file, err := os.OpenFile("example2D-3.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	snapcommon(t, "Test (2D): install snapshots (disconnect+unreliable)",
 		true, false, false)
 }
 
 func TestSnapshotInstallCrash2D(t *testing.T) {
-	file, err := os.OpenFile("example2D-4.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	snapcommon(t, "Test (2D): install snapshots (crash)", false, true, true)
 }
 
 func TestSnapshotInstallUnCrash2D(t *testing.T) {
-	file, err := os.OpenFile("example2D-5.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	snapcommon(t, "Test (2D): install snapshots (unreliable+crash)", false, false, true)
 }
 
@@ -1399,18 +1202,6 @@ func TestSnapshotInstallUnCrash2D(t *testing.T) {
 // restart using snapshot along with the
 // tail of the log?
 func TestSnapshotAllCrash2D(t *testing.T) {
-	file, err := os.OpenFile("example2D-6.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	iters := 5
 	cfg := make_config(t, servers, false, true)
@@ -1451,18 +1242,6 @@ func TestSnapshotAllCrash2D(t *testing.T) {
 // do servers correctly initialize their in-memory copy of the snapshot, making
 // sure that future writes to persistent state don't lose state?
 func TestSnapshotInit2D(t *testing.T) {
-	file, err := os.OpenFile("example2D-7.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(file)
-	log.SetPrefix("[Raft] ")
-	log.SetFlags(log.LstdFlags)
-
 	servers := 3
 	cfg := make_config(t, servers, false, true)
 	defer cfg.cleanup()

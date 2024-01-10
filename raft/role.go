@@ -14,11 +14,26 @@ func (rf *Raft) getRoleSafely() Role {
 	return rf.role
 }
 
-func (rf *Raft) toFollwerState(term int, voteFor int) {
-	rf.currentTerm = term
+func (rf *Raft) toFollwerState(options ...followerOption) {
+	for _, option := range options {
+		option(rf)
+	}
 	rf.role = Follower
-	rf.votedFor = voteFor
 	rf.electionTimer.Reset(rf.randSeed.getElectionTimeOut())
+}
+
+type followerOption func(*Raft)
+
+func WithTerm(term int) followerOption {
+	return func(r *Raft) {
+		r.currentTerm = term
+	}
+}
+
+func WithVotedFor(votedFor int) followerOption {
+	return func(r *Raft) {
+		r.votedFor = votedFor
+	}
 }
 
 func (rf *Raft) toCandidateState() {
@@ -26,7 +41,6 @@ func (rf *Raft) toCandidateState() {
 	// 投票给自己
 	rf.votedFor = rf.me
 	rf.role = Candidate
-	rf.votes = 1
 }
 
 func (rf *Raft) toLeaderState() {

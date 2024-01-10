@@ -23,13 +23,13 @@ func (rf *Raft) sendApplyMsg() {
 		commitIndex := rf.commitIndex
 		lastApplied := rf.lastApplied
 
-		if commitIndex == lastApplied {
+		if commitIndex <= lastApplied {
 			rf.mu.RUnlock()
 			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 		var entries []*Entry
-		if rf.logs[len(rf.logs)-1].Term >= rf.currentTerm {
+		if rf.getLastLog().Term >= rf.currentTerm {
 			f := rf.getRealIndex(lastApplied)
 			e := rf.getRealIndex(commitIndex)
 			for i := f + 1; i <= e; i++ {
@@ -37,14 +37,6 @@ func (rf *Raft) sendApplyMsg() {
 			}
 		}
 		rf.mu.RUnlock()
-
-		if commitIndex < lastApplied {
-			slog.Error("commitIndex 不可能小于 lastApplied",
-				slog.Int("me", rf.me),
-				slog.Int("commitIndex", rf.commitIndex),
-				slog.Int("lastApplied", rf.lastApplied))
-			return
-		}
 
 		for _, entry := range entries {
 			slog.Info("sendApplyMsg",
