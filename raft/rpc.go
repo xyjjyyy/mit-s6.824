@@ -88,9 +88,6 @@ func (rf *Raft) InstallSnapShotRpc(args *SnapShotArgs, reply *SnapShotReply) {
 		rf.logs = rf.logs[args.LastIncludedIndex-rf.getFirstLog().Index:]
 	}
 
-	// update dummy entry with lastIncludedTerm and lastIncludedIndex
-	rf.logs[0].Command = 0
-	rf.logs[0].Term, rf.logs[0].Index = args.LastIncludedTerm, args.LastIncludedIndex
 	rf.lastApplied, rf.commitIndex = args.LastIncludedIndex, args.LastIncludedIndex
 	rf.lastIncludedIndex, rf.lastIncludedTerm = args.LastIncludedIndex, args.LastIncludedTerm
 

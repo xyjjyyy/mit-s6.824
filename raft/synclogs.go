@@ -26,6 +26,7 @@ func (rf *Raft) startSendEntries() {
 		if rf.nextIndex[i] <= rf.lastIncludedIndex {
 			rf.mu.Unlock()
 			go rf.sendInstallSnapShot(i)
+			// 跳出，等待快照同步结果后再进行后续的同步
 			continue
 		}
 
@@ -73,10 +74,6 @@ func (rf *Raft) handleSendEntries(server int, args AppendEntriesArgs, single cha
 		return
 	}
 
-	slog.Info("hadleSendEntries: sendEntries successfully",
-		slog.Int("leader", rf.me),
-		slog.Int("peer", server))
-
 	if rf.role != Leader || rf.killed() {
 		return
 	}
@@ -101,6 +98,11 @@ func (rf *Raft) handleSendEntries(server int, args AppendEntriesArgs, single cha
 	if reply.Term > rf.currentTerm {
 		rf.toFollwerState(WithTerm(reply.Term), WithVotedFor(-1))
 		return
+	}
+
+	// 需要同步快照的情况
+	if reply.XIndex < rf.getFirstLog().Index {
+		rf.nextIndex[server] = reply.XIndex + 1
 	}
 
 	for i := len(rf.logs) - 1; i >= 0; i-- {

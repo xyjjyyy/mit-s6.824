@@ -39,6 +39,10 @@ func (rf *Raft) sendApplyMsg() {
 		rf.mu.RUnlock()
 
 		for _, entry := range entries {
+			if entry.Index == 0 {
+				continue
+			}
+
 			slog.Info("sendApplyMsg",
 				slog.Int("node", rf.me),
 				slog.Any("entry", entry))
@@ -50,7 +54,7 @@ func (rf *Raft) sendApplyMsg() {
 			rf.applyMsg <- msg
 
 			rf.mu.Lock()
-			rf.lastApplied = entry.Index
+			rf.lastApplied = max(entry.Index, rf.lastApplied)
 			rf.persist(nil)
 			rf.mu.Unlock()
 		}

@@ -21,18 +21,27 @@ func init() {
 
 	jsonHandler := slog.NewJSONHandler(file, nil)
 	logger := slog.New(jsonHandler)
+
+	// logger := slog.New(&NilHandler{})
 	slog.SetDefault(logger)
 }
 
 func (rf *Raft) getLastLog() *Entry {
 	if len(rf.logs) == 0 {
-		return nil
+		return &Entry{
+			Index: rf.lastIncludedIndex,
+			Term:  rf.lastIncludedTerm,
+		}
 	}
 
 	return rf.logs[len(rf.logs)-1]
 }
 
 func (rf *Raft) getFirstLog() *Entry {
+	if len(rf.logs) == 0 {
+		return nil
+	}
+
 	return rf.logs[0]
 }
 
@@ -134,7 +143,8 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 		return index, term, false
 	}
 
-	index = lastLog.Index + 1
+	preIndex := lastLog.Index
+	index = preIndex + 1
 	term = rf.currentTerm
 	rf.logs = append(rf.logs, &Entry{
 		Index:   index,
@@ -191,7 +201,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 		applyMsg:          applyCh,
 		role:              Follower,
 		votedFor:          -1,
-		logs:              []*Entry{{Index: 0, Term: 0}},
+		logs:              []*Entry{{}},
 		commitIndex:       0,
 		matchIndex:        make([]int, len(peers)),
 		nextIndex:         make([]int, len(peers)),

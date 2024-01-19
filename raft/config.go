@@ -144,6 +144,7 @@ func (cfg *config) crash1(i int) {
 func (cfg *config) checkLogs(i int, m ApplyMsg) (string, bool) {
 	err_msg := ""
 	v := m.Command
+	slog.Info("logs", slog.Any("logs", cfg.logs))
 	for j := 0; j < len(cfg.logs); j++ {
 		if old, oldok := cfg.logs[j][m.CommandIndex]; oldok && old != v {
 			log.Printf("%v: log %v; server %v\n", i, cfg.logs[i], cfg.logs[j])
@@ -199,7 +200,7 @@ func (cfg *config) ingestSnap(i int, snapshot []byte, index int) string {
 		return "snapshot Decode() error"
 	}
 	if index != -1 && index != lastIncludedIndex {
-		err := fmt.Sprintf("server %v snapshot doesn't match m.SnapshotIndex", i)
+		err := fmt.Sprintf("server %v snapshot doesn't match m.SnapshotIndex,index: %d,lastincludedIndex:%d", i, index, lastIncludedIndex)
 		return err
 	}
 	cfg.logs[i] = map[int]interface{}{}
@@ -207,6 +208,7 @@ func (cfg *config) ingestSnap(i int, snapshot []byte, index int) string {
 		cfg.logs[i][j] = xlog[j]
 	}
 	cfg.lastApplied[i] = lastIncludedIndex
+	slog.Info("snap lastappied", slog.Int("node", i), slog.Int("lastapplied", cfg.lastApplied[i]))
 	return ""
 }
 
@@ -223,6 +225,7 @@ func (cfg *config) applierSnap(i int, applyCh chan ApplyMsg) {
 
 	for m := range applyCh {
 		err_msg := ""
+		slog.Info("applyCh", slog.Int("node", i), slog.Any("m", m), slog.Int("lastapplied", cfg.lastApplied[i]))
 		if m.SnapshotValid {
 			cfg.mu.Lock()
 			err_msg = cfg.ingestSnap(i, m.Snapshot, m.SnapshotIndex)
@@ -244,9 +247,10 @@ func (cfg *config) applierSnap(i int, applyCh chan ApplyMsg) {
 
 			cfg.mu.Lock()
 			cfg.lastApplied[i] = m.CommandIndex
+			slog.Info("update lastapplied", slog.Int("node", i), slog.Any("lastapplied", cfg.lastApplied))
 			cfg.mu.Unlock()
 
-			if (m.CommandIndex+1)%SnapShotInterval == 1 {
+			if (m.CommandIndex+1)%SnapShotInterval == 0 {
 				w := new(bytes.Buffer)
 				e := labgob.NewEncoder(w)
 				e.Encode(m.CommandIndex)
@@ -303,7 +307,7 @@ func (cfg *config) start1(i int, applier func(int, chan ApplyMsg)) {
 		cfg.saved[i] = cfg.saved[i].Copy()
 
 		snapshot := cfg.saved[i].ReadSnapshot()
-		if snapshot != nil && len(snapshot) > 0 {
+		if len(snapshot) > 0 {
 			// mimic KV server and process snapshot now.
 			// ideally Raft should send it up on applyCh...
 			err := cfg.ingestSnap(i, snapshot, -1)
@@ -559,7 +563,7 @@ func (cfg *config) wait(index int, n int, startTerm int) interface{} {
 func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 	t0 := time.Now()
 	starts := 0
-	for time.Since(t0).Seconds() < 10 && cfg.checkFinished() == false {
+	for time.Since(t0).Seconds() < 10 && !cfg.checkFinished() {
 		// try all the servers, maybe one is the leader.
 		index := -1
 		for si := 0; si < cfg.n; si++ {
@@ -593,15 +597,16 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 				}
 				time.Sleep(20 * time.Millisecond)
 			}
-			if retry == false {
+			if !retry {
 				cfg.t.Fatalf("one(%v) failed to reach agreement", cmd)
 			}
+			slog.Info("retry")
 			log.Println(cmd, " not committed,will retry")
 		} else {
 			time.Sleep(50 * time.Millisecond)
 		}
 	}
-	if cfg.checkFinished() == false {
+	if !cfg.checkFinished() {
 		cfg.t.Fatalf("one(%v) failed to reach agreement", cmd)
 	}
 	return -1

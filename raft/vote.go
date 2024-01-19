@@ -50,10 +50,6 @@ func (rf *Raft) handleSendVote(server int, args RequestVoteArgs, single chan str
 		return
 	}
 
-	slog.Info("handleVote: sendRequestVote successfully",
-		slog.Int("me", rf.me),
-		slog.Int("peer", server))
-
 	// 拒绝投票
 	if !voteReply.VoteGranted {
 		// term已经不是最新的，更新自己的身份
@@ -85,7 +81,6 @@ func (rf *Raft) handleSendVote(server int, args RequestVoteArgs, single chan str
 
 	default:
 		atomic.AddInt32(count, 1)
-		// slog.Info("count ", slog.Int("count", int(*count)))
 		// 超过半数通票，成为leader
 		if int(*count) > len(rf.peers)/2 {
 			slog.Info("become leader", slog.Int("node", rf.me))

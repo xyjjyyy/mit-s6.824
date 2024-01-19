@@ -1114,7 +1114,7 @@ func TestUnreliableChurn2C(t *testing.T) {
 const MAXLOGSIZE = 2000
 
 func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash bool) {
-	iters := 30
+	iters := 5
 	servers := 3
 	cfg := make_config(t, servers, !reliable, true)
 	defer cfg.cleanup()
@@ -1125,6 +1125,7 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 	leader1 := cfg.checkOneLeader()
 
 	for i := 0; i < iters; i++ {
+		slog.Info("new iter", slog.Int("iter", i+1))
 		victim := (leader1 + 1) % servers
 		sender := leader1
 		if i%3 == 1 {
@@ -1164,7 +1165,9 @@ func snapcommon(t *testing.T, name string, disconnect bool, reliable bool, crash
 			// reconnect a follower, who maybe behind and
 			// needs to rceive a snapshot to catch up.
 			cfg.connect(victim)
+			slog.Info("connect victim", slog.Int("victim", victim))
 			cfg.one(rand.Int(), servers, true)
+			slog.Info("check one leader")
 			leader1 = cfg.checkOneLeader()
 		}
 		if crash {

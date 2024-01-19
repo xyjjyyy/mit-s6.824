@@ -77,12 +77,11 @@ func (ps *Persister) SnapshotSize() int {
 
 func (rf *Raft) sendInstallSnapShot(server int) bool {
 	rf.mu.RLock()
-	firstLog := rf.getFirstLog()
 	args := SnapShotArgs{
 		Term:              rf.currentTerm,
 		LeaderId:          rf.me,
-		LastIncludedIndex: firstLog.Index,
-		LastIncludedTerm:  firstLog.Term,
+		LastIncludedIndex: rf.lastIncludedIndex,
+		LastIncludedTerm:  rf.lastIncludedTerm,
 		Data:              rf.persister.ReadSnapshot(),
 	}
 	rf.mu.RUnlock()
@@ -129,9 +128,9 @@ func (rf *Raft) persist(snapshot []byte) {
 	if e.Encode(rf.lastIncludedTerm) != nil {
 		persistError("lastIncludedTerm")
 	}
-	if e.Encode(rf.lastApplied) != nil {
-		persistError("lastApplied")
-	}
+	// if e.Encode(rf.lastApplied) != nil {
+	// 	persistError("lastApplied")
+	// }
 
 	raftstate := w.Bytes()
 	if snapshot == nil {
@@ -147,7 +146,7 @@ func (rf *Raft) readPersist(data []byte) {
 
 	r := bytes.NewBuffer(data)
 	d := labgob.NewDecoder(r)
-	var currentTerm, votedFor, lastIncludeIndex, lastIncludeTerm, lastApplied int
+	var currentTerm, votedFor, lastIncludeIndex, lastIncludeTerm int
 	var logs []*Entry
 
 	if d.Decode(&currentTerm) != nil {
@@ -165,17 +164,17 @@ func (rf *Raft) readPersist(data []byte) {
 	if d.Decode(&lastIncludeTerm) != nil {
 		panic("readPersist lastIncludeTerm failed")
 	}
-	if d.Decode(&lastApplied) != nil {
-		panic("readPersist lastApplied failed")
-	}
+	// if d.Decode(&lastApplied) != nil {
+	// 	panic("readPersist lastApplied failed")
+	// }
 
 	rf.currentTerm = currentTerm
 	rf.votedFor = votedFor
 	rf.logs = logs
 	rf.lastIncludedIndex = lastIncludeIndex
 	rf.lastIncludedTerm = lastIncludeTerm
-	rf.lastApplied = lastApplied
-	rf.commitIndex = lastApplied
+	rf.lastApplied = lastIncludeIndex
+	rf.commitIndex = lastIncludeIndex
 
 	slog.Info("read Persist", slog.Any("raft obj", rf))
 }
@@ -187,16 +186,6 @@ func (rf *Raft) readPersist(data []byte) {
 func (rf *Raft) Snapshot(index int, snapshot []byte) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
-
-	// firstLog := rf.getFirstLog()
-	// if firstLog.Index > index {
-	// 	log.Printf("peer[%d] Snapshot to index[%d] failed,because firstLog.index is %d\n", rf.me, index, firstLog.Index)
-	// }
-
-	// lastLog := rf.getLastLog()
-	// if lastLog.Index < index {
-	// 	log.Printf("peer[%d] Snapshot to index[%d] failed,because lastLog.index is %d\n", rf.me, index, lastLog.Index)
-	// }
 
 	realIndex := rf.getRealIndex(index)
 	if realIndex == -1 {
